@@ -6,7 +6,7 @@ temp.track()
 
 const defaults = {
   brightness: 100,
-  saturation: 250,
+  saturation: 100,
   desaturate: true
 }
 
