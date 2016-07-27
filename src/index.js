@@ -5,21 +5,30 @@ import Color from 'color'
 temp.track()
 
 const defaults = {
-  desaturate: true, 
-  intermediateBrightness: 100
+  brightness: 100,
+  saturation: 250,
+  desaturate: true
 }
 
 export default function colorizedImage(options) {
   const dfd = deferred()
   const opts = { ...defaults, ...options }
-  const { src, mask, color, desaturate, intermediateBrightness } = opts
+  const { 
+    src, 
+    mask, 
+    color, 
+    saturation,
+    desaturate,
+    brightness
+  } = opts
 
   const mod = Color(color)
   const colorizeParams = rgbArrayToColorizeParams(mod.rgbArray())
   
   let colorized = gm(src)
-    .modulate(intermediateBrightness, desaturate ? 0 : 100)
+    .modulate(brightness, desaturate ? 0 : 100)
     .colorize(...colorizeParams)
+    .modulate(100, saturation)
 
   temp.open('colorizedImage', (err, tmp)=> {
     if (err) { return dfd.reject(err) }
