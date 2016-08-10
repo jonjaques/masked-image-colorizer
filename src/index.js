@@ -7,7 +7,8 @@ temp.track()
 const defaults = {
   brightness: 100,
   saturation: 100,
-  desaturate: true
+  desaturate: true,
+  resize: false
 }
 
 export default async function colorizedImage(options) {
@@ -19,6 +20,7 @@ export default async function colorizedImage(options) {
     color, 
     saturation,
     desaturate,
+    resize,
     brightness
   } = opts
 
@@ -33,14 +35,16 @@ export default async function colorizedImage(options) {
   temp.open('colorizedImage', async (err, tmp)=> {
     if (err) { return dfd.reject(err) }
 
-    try {
-      let size = await getSize(gm(src))
-      let maskSize = await getSize(gm(mask))
-      if (size.width != maskSize.width || size.height != maskSize.width) {
-        await gmWrite(gm(mask).resizeExact(size.width, size.height), mask)
+    if (resize) {
+      try {
+        let size = await getSize(gm(src))
+        let maskSize = await getSize(gm(mask))
+        if (size.width != maskSize.width || size.height != maskSize.width) {
+          await gmWrite(gm(mask).resizeExact(size.width, size.height), mask)
+        }
+      } catch(e) {
+        return reject(e)
       }
-    } catch(e) {
-      return reject(e)
     }
 
     const final = gm()
