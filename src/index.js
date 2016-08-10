@@ -10,7 +10,7 @@ const defaults = {
   desaturate: true
 }
 
-export default function colorizedImage(options) {
+export default async function colorizedImage(options) {
   const dfd = deferred()
   const opts = { ...defaults, ...options }
   const { 
@@ -30,8 +30,18 @@ export default function colorizedImage(options) {
     .colorize(...colorizeParams)
     .modulate(100, saturation)
 
-  temp.open('colorizedImage', (err, tmp)=> {
+  temp.open('colorizedImage', async (err, tmp)=> {
     if (err) { return dfd.reject(err) }
+
+    try {
+      let size = await getSize(gm(src))
+      let maskSize = await getSize(gm(mask))
+      if (size.width != maskSize.width || size.height != maskSize.width) {
+        await gmWrite(gm(mask).resizeExact(size.width, size.height), mask)
+      }
+    } catch(e) {
+      return reject(e)
+    }
 
     const final = gm()
       .command('composite')
@@ -46,6 +56,24 @@ export default function colorizedImage(options) {
   })
 
   return dfd.promise
+}
+
+function getSize(gmInstance) {
+  return new Promise((resolve, reject)=> {
+    gmInstance.size((err, size)=> {
+      if (err) return reject(err)
+      resolve(size)
+    })
+  })
+}
+
+function gmWrite(gmInstance, path) {
+  return new Promise((resolve, reject)=> {
+    gmInstance.write(path, (err)=> {
+      if (err) return reject(err)
+      resolve(path)
+    })
+  })
 }
 
 function inverseIntensity(value) {
