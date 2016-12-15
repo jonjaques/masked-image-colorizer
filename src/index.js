@@ -8,7 +8,8 @@ const defaults = {
   brightness: 100,
   saturation: 100,
   desaturate: true,
-  resize: false
+  resize: false,
+  width: null
 }
 
 export default async function colorizedImage(options) {
@@ -21,7 +22,8 @@ export default async function colorizedImage(options) {
     saturation,
     desaturate,
     resize,
-    brightness
+    brightness,
+    width
   } = opts
 
   const mod = Color(color)
@@ -32,31 +34,35 @@ export default async function colorizedImage(options) {
     .colorize(...colorizeParams)
     .modulate(100, saturation)
 
-  temp.open('colorizedImage', async (err, tmp)=> {
-    if (err) { return dfd.reject(err) }
+  let tmp = await tempFile('colorizedImage')
 
-    if (resize) {
-      try {
-        let size = await getSize(gm(src))
-        let maskSize = await getSize(gm(mask))
-        if (size.width != maskSize.width || size.height != maskSize.width) {
-          await gmWrite(gm(mask).resizeExact(size.width, size.height), mask)
-        }
-      } catch(e) {
-        return reject(e)
+  if (resize) {
+    try {
+      let size = await getSize(gm(src))
+      let maskSize = await getSize(gm(mask))
+      if (size.width != maskSize.width || size.height != maskSize.width) {
+        await gmWrite(gm(mask).resizeExact(size.width, size.height), mask)
       }
+    } catch(e) {
+      return dfd.reject(e)
     }
+  }
 
-    const final = gm()
-      .command('composite')
-      .in(src)
-      .in(tmp.path)
-      .in(mask)
+  let final = gm()
+    .command('composite')
+    .in(src)
+    .in(tmp.path)
+    .in(mask)
 
-    colorized.write(tmp.path, (err)=> {
-      if (err) { return dfd.reject(err) }
-      dfd.resolve(final)
-    })
+  colorized.write(tmp.path, async (err)=> {
+    if (err) { return dfd.reject(err) }
+    if (typeof width === 'number') {
+      let tPath = await tempFile('resizedImage')
+      await gmWrite(final, tPath.path)
+      let newFinal = gm(tPath.path).resize(width, width)
+      return dfd.resolve(newFinal)
+    }
+    dfd.resolve(final)
   })
 
   return dfd.promise
@@ -86,6 +92,15 @@ function inverseIntensity(value) {
 
 function rgbArrayToColorizeParams(arr) {
   return arr.map(inverseIntensity)
+}
+
+async function tempFile(name) {
+  return new Promise((resolve, reject)=> {
+    temp.open(name, (err, result)=> {
+      if (err) return reject(err)
+      resolve(result)
+    })
+  })
 }
 
 function deferred() {

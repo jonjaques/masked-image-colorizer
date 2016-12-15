@@ -8,6 +8,7 @@ const args = yargs
   .number('brightness')
   .default('brightness', 150)
   .number('opacity')
+  .number('width')
   .default('opacity', 100)
   .argv
 
@@ -20,11 +21,14 @@ gulp.task('test', (done)=> {
   const brightness = args.brightness
   const saturation = args.saturation || 10
   const opacity = args.opacity
-  colorize({ src, mask, color, brightness, saturation, opacity })
+  const width = args.width || null
+  colorize({ src, mask, color, brightness, saturation, opacity, width })
     .catch(err => console.log(err))
     .then((gmFile)=> {
-      gmFile.write(path.resolve('test/mm_test/g611/G611-2_computed.jpg'), (err)=> {
+      let p = path.resolve('test/mm_test/g611/G611-2_computed.jpg')
+      gmFile.write(p, (err)=> {
         if (err) return console.log(err)
+        console.log('Wrote file ' + p)
         done()
       })
     })
