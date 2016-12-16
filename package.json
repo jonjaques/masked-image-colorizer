@@ -1,6 +1,6 @@
 {
   "name": "masked-image-colorizer",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "Image + Mask + Color => Composite",
   "main": "index.js",
   "scripts": {
