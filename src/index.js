@@ -1,5 +1,6 @@
 import gm from 'gm'
 import temp from 'temp'
+import trimUrl from 'url-trim'
 import Color from 'color'
 
 temp.track()
@@ -15,6 +16,10 @@ const defaults = {
 export default async function colorizedImage(options) {
   const dfd = deferred()
   const opts = { ...defaults, ...options }
+
+  if (opts.src) { opts.src = trimUrl(opts.src) }
+  if (opts.mask) { opts.mask = trimUrl(opts.mask) }
+
   const { 
     src, 
     mask, 

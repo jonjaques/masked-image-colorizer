@@ -16,10 +16,10 @@ gulp.task('default', ['test'])
 
 gulp.task('test', (done)=> {
   const src = path.resolve('test/mm_test/g611/G611-2.jpg')
-  const mask = path.resolve('test/mm_test/g611/G611-2_mask.jpg')
+  const mask = path.resolve('test/mm_test/g611/G611-2_mask.jpg?v=dslfkj')
   const color = args.color
   const brightness = args.brightness
-  const saturation = args.saturation || 10
+  const saturation = args.saturation || 100
   const opacity = args.opacity
   const width = args.width || null
   colorize({ src, mask, color, brightness, saturation, opacity, width })
